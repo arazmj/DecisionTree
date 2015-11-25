@@ -3,6 +3,7 @@ package net.amirrazmjou.decisiontree;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Main {
 
@@ -14,12 +15,12 @@ public class Main {
 
     // given examples, attributes, and default class
     // return a decision tree
-    public static DecisionTreeNode learnDecisionTree (List<Record> examples,
-                                                      List<Attribute> attributes,
-                                                      String defaultClass)
+    public static DecisionTreeNode learnDecisionTree(List<Record> examples,
+                                                     List<Attribute> attributes,
+                                                     Attribute classes, String defaultClass)
     {
-        DecisionTreeNode decisionTree = DecisionTreeAlgorithm.learn(examples,
-                attributes, defaultClass);
+        DecisionTreeNode decisionTree = DecisionTreeAlgorithm.train(examples,
+                attributes, classes, defaultClass);
 
         return decisionTree;
     }
@@ -28,6 +29,7 @@ public class Main {
     // with more indentation for nodes at deeper levels
     public static void printDecisionTree (DecisionTreeNode tree)
     {
+
         System.out.println(tree);
     }
 
@@ -47,27 +49,39 @@ public class Main {
     {
         // given the file names for attributes, training set, and test set
         // read in the attributes, training set, and test set
-        List<List<String>> attrData, trainData, testData = null;
+        List<List<String>> attrData = null,
+                trainData = null, testData = null;
         try {
             attrData = DataSetFile.read(attrFileName, " ");
             trainData = DataSetFile.read(trainFileName, " ");
             if (testFileName != null) {
                 testData = DataSetFile.read(testFileName, " ");
             }
-
-            System.out.println(attrData);
-            System.out.println(trainData);
-            System.out.println(testData);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        List<Attribute> attributes = new LinkedList<>();
+        List<Attribute> attributeSet = new LinkedList<>();
         List<Record> traininSet = new LinkedList<>();
         List<Record> testSet = new LinkedList<>();
 
-        // learn a decision tree from the training data
-        DecisionTreeNode decisionTree = learnDecisionTree(traininSet, attributes, "?????");
+        int classIndex = attrData.size() - 1;
+        Attribute classes = new Attribute(attrData.get(classIndex));
+        attrData.remove(classIndex);
+
+        assert attrData != null;
+        attributeSet.addAll(attrData.stream().map(Attribute::new).collect(Collectors.toList()));
+
+        assert trainData != null;
+        traininSet.addAll(trainData.stream().map(Record::new).collect(Collectors.toList()));
+
+        if (testData != null) {
+            testSet.addAll(testData.stream().map(Record::new).collect(Collectors.toList()));
+        }
+
+
+        // train a decision tree from the training data
+        DecisionTreeNode decisionTree = learnDecisionTree(traininSet, attributeSet, classes, "");
 
         // print the decision tree
         printDecisionTree(decisionTree);
@@ -98,13 +112,13 @@ public class Main {
     // attributes and class of each record are written to the file
     // each record should be unique
 
-    public static void genTttMoveData (train-size train-fname train2-fname
-                    test-size test-fname test2-fname) ...)
-    ; test the ttt data set with initial attributes, and additional attributes (defun test-ttt-move ()
-    (test-decision-tree ’ttt-move-attr.txt ’ttt-move-train.txt ’ttt-move-test.txt)
-            (test-decision-tree ’ttt-move-attr2.txt ’ttt-move-train2.txt
-    ’ttt-move-test2.txt)
-            ’done
+//    public static void genTttMoveData (train-size train-fname train2-fname
+//                    test-size test-fname test2-fname) ...)
+//    ; test the ttt data set with initial attributes, and additional attributes (defun test-ttt-move ()
+//    (test-decision-tree ’ttt-move-attr.txt ’ttt-move-train.txt ’ttt-move-test.txt)
+//            (test-decision-tree ’ttt-move-attr2.txt ’ttt-move-train2.txt
+//    ’ttt-move-test2.txt)
+//            ’done
 
     public static void main(String[] args) {
         testRestaurant();

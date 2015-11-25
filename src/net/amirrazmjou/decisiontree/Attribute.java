@@ -8,11 +8,33 @@ import java.util.List;
 public class Attribute {
 
     private List<String> data;
+    private int index;
+    private static int lastIndex = -1;
+
+    public Attribute(List<String> data) {
+        this.data = data;
+        index = lastIndex;
+        lastIndex++;
+    }
+
+
     public String getName() {
         return data.get(0);
     }
     public List<String> getValues() {
-        // TODO:
-        return data.subList(1, data.size() - 1);
+        return data.subList(1, data.size());
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    @Override
+    public String toString() {
+        return "Attribute {" +
+                "index=" + index +
+                ", name=" + getName() +
+                ", values=" + getValues() +
+                '}';
     }
 }
