@@ -10,9 +10,21 @@ import java.util.List;
 /**
  * Created by Amir Razmjou on 11/21/15.
  */
-public class DataSetFile {
 
-    static List<List<String>> read(String fileName, String regex) throws IOException {
+
+public class DataSetFile {
+    /**
+     * Reads "whatever" separated variable file into a List of Lists
+     * where each outer list represents a line in the data file
+     *
+     * @param fileName input file name
+     * @param regex    the deliminator or a regular expression on how
+     *                 values are separated
+     * @return A list of list of strings
+     * @throws IOException throws exception if the file
+     *                     cannot be found or be read
+     */
+    public static List<List<String>> read(String fileName, String regex) throws IOException {
         String line;
         BufferedReader stream = null;
         List<List<String>> data = new ArrayList<>();
