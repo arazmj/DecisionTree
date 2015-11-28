@@ -22,7 +22,7 @@ public class Main {
      * the dataset
      *
      * @param tree    the tree
-     * @param dataSet the dataset
+     * @param dataSet the data set
      * @return the accuracy
      */
     public static float evalDecisionTree(DecisionTreeNode tree,
@@ -119,6 +119,10 @@ public class Main {
         testDecisionTree("ttt-attr.txt", "ttt-train.txt", "ttt-test.txt");
     }
 
+    public static void testTttPlay() {
+        testDecisionTree("ttt-play-attr.txt", "ttt-play-train.txt", "ttt-play-test.txt");
+    }
+
     // Q.4
     // We would like the program to learn how to make a move in the tic-tac-toe game.
     // The nine (target) classes are: top-left, top-middle, ...
@@ -130,7 +134,7 @@ public class Main {
      * generate a random legal board configuration, assuming x is next to move
      * the user/teacher enters the "correct" move for x
      * attributes and class of each record are written to the file
-     * each record should be unique
+     * each record should be unique.
      *
      * @param trainSize
      * @param trainFileName
@@ -140,7 +144,7 @@ public class Main {
      * @param test2FileName
      */
     public static void genTttMoveData(int trainSize, String trainFileName, String train2FileName,
-                                      int testSize, String testFileName, String test2FileName) {
+                                      int testSize, String testFileName, String test2FileName) throws IOException {
 
         String[] positions = new String[]
                 {"top-left", "top-middle", "top-right",
@@ -158,7 +162,7 @@ public class Main {
             c++;
             Board2D board = new Board2D(3);
             StringBuilder sb = new StringBuilder();
-            putRandomMoves(board, c % 8, (int) System.currentTimeMillis());
+            putRandomMoves(board, c % 8, c);
             String beforeMove = board.toSingleLineString();
             sb.append(beforeMove);
 
@@ -177,19 +181,34 @@ public class Main {
 
             sb.append(positions[i]);
             examplesData.add(sb.toString());
-            System.out.print(".");
+
+            if (c % 20 == 0)
+                System.out.print(".");
         }
 
         ArrayList<String> arrayList = new ArrayList<>(examplesData);
         List<String> trainData = arrayList.subList(0, trainSize);
         List<String> testData = arrayList.subList(trainSize, trainSize + testSize);
 
-        try (Writer writer = new BufferedWriter(new OutputStreamWriter(
-                new FileOutputStream(tr), "utf-8"))) {
-          //  writer.write("something");
+        try {
+            try (Writer writer = new BufferedWriter(new OutputStreamWriter(
+                    new FileOutputStream(trainFileName), "utf-8"))) {
+                for (String s : trainData) {
+                    writer.write(s);
+                    writer.write("\n");
+                }
+            }
+
+            try (Writer writer = new BufferedWriter(new OutputStreamWriter(
+                    new FileOutputStream(testFileName), "utf-8"))) {
+                for (String s : testData) {
+                    writer.write(s);
+                    writer.write("\n");
+                }
+            }
+        } catch (IOException ex) {
+            System.out.println("Cannot write the file "  + ex.getMessage());
         }
-
-
     }
 
     public static void putRandomMoves(Board board, int n, int seed) {
@@ -218,10 +237,12 @@ public class Main {
         testDecisionTree("ttt-move-attr2.txt", "ttt-move-train2.txt", "ttt-move-test2.txt");
     }
 
-    public static void main(String[] args) {
-        genTttMoveData(100, "", "", 20, "", "");
+    public static void main(String[] args) throws IOException {
+        genTttMoveData(10, "ttt-play-train.txt", "",
+                      200, "ttt-play-test.txt", "");
 //        testRestaurant();
 //        testIds();
 //        testTtt();
+        testTttPlay();
     }
 }
