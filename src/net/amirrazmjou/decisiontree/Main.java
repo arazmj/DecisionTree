@@ -1,7 +1,12 @@
 package net.amirrazmjou.decisiontree;
 
-import java.io.IOException;
+import net.amirrazmjou.tictactoe.*;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 public class Main {
@@ -12,9 +17,11 @@ public class Main {
     // The functions (stated in Java) include:
     //
 
-    /** given a tree and a data set, return the accuracy (%) of the tree on
+    /**
+     * given a tree and a data set, return the accuracy (%) of the tree on
      * the dataset
-     * @param tree the tree
+     *
+     * @param tree    the tree
      * @param dataSet the dataset
      * @return the accuracy
      */
@@ -124,6 +131,7 @@ public class Main {
      * the user/teacher enters the "correct" move for x
      * attributes and class of each record are written to the file
      * each record should be unique
+     *
      * @param trainSize
      * @param trainFileName
      * @param train2FileName
@@ -132,9 +140,73 @@ public class Main {
      * @param test2FileName
      */
     public static void genTttMoveData(int trainSize, String trainFileName, String train2FileName,
-                                      int testSize, String testFileName, String test2FileName)
-    {
+                                      int testSize, String testFileName, String test2FileName) {
 
+        String[] positions = new String[]
+                {"top-left", "top-middle", "top-right",
+                 "middle-left", "center", "middle-right",
+                 "bottom-left", "bottom-middle", "bottom-right"};
+
+        System.out.print("Generating examples...");
+
+        // put all training set and test set in a single hash set
+        // so we can make sure we have distinct examples
+        HashSet<String> examplesData = new HashSet<>();
+        int examplesCount = trainSize + testSize;
+        int c = 0;
+        while (examplesData.size() < examplesCount) {
+            c++;
+            Board2D board = new Board2D(3);
+            StringBuilder sb = new StringBuilder();
+            putRandomMoves(board, c % 8, (int) System.currentTimeMillis());
+            String beforeMove = board.toSingleLineString();
+            sb.append(beforeMove);
+
+            Player player = new SimpleMaxMinPlayer(board, Seed.CROSS);
+            player.move();
+            String afterMove = board.toSingleLineString();
+
+            String[] splitBeforeMove = beforeMove.split(" ");
+            String[] splitAfterMove = afterMove.split(" ");
+
+            int i = 0;
+            for (; i < splitAfterMove.length; i++) {
+                if (!splitAfterMove[i].equals(splitBeforeMove[i]))
+                    break;
+            }
+
+            sb.append(positions[i]);
+            examplesData.add(sb.toString());
+            System.out.print(".");
+        }
+
+        ArrayList<String> arrayList = new ArrayList<>(examplesData);
+        List<String> trainData = arrayList.subList(0, trainSize);
+        List<String> testData = arrayList.subList(trainSize, trainSize + testSize);
+
+        try (Writer writer = new BufferedWriter(new OutputStreamWriter(
+                new FileOutputStream(tr), "utf-8"))) {
+          //  writer.write("something");
+        }
+
+
+    }
+
+    public static void putRandomMoves(Board board, int n, int seed) {
+        Random random = new Random();
+        random.setSeed(seed);
+        boolean b = true;
+        for (int x = 0; x < n; x++) {
+            List<Point> availableMoves = board.getAvailableMoves();
+            int size = availableMoves.size();
+            int r = random.nextInt(size);
+            board.setCell(availableMoves.get(r), b ? Seed.NOUGHT : Seed.CROSS);
+            if (board.winner() != null) {
+                board.setCell(availableMoves.get(r), Seed.EMPTY);
+            } else {
+                b = !b;
+            }
+        }
     }
 
     /**
@@ -147,8 +219,9 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        testRestaurant();
-        testIds();
-        testTtt();
+        genTttMoveData(100, "", "", 20, "", "");
+//        testRestaurant();
+//        testIds();
+//        testTtt();
     }
 }
