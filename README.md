@@ -15,6 +15,7 @@ Gain to construct a decision tree.
 
 
 ## Output
+
 Training Set: restaurant-train.txt
 Patrons = None : No (2)
 Patrons = Some : Yes (4)
@@ -42,6 +43,7 @@ Accuracy of decision tree on the training set : 100.0
 Accuracy of decision tree on the test set : 100.0
 
 Training Set: ttt-train.txt
+
 middle-middle = x (384)
 	bottom-left = x (147)
 		top-right = x : yes (77)
@@ -335,6 +337,7 @@ Accuracy of decision tree on the training set : 100.0
 Accuracy of decision tree on the test set : 85.44304
 Generating examples..................
 Training Set: ttt-play-train.txt
+
 middle-middle = x (70)
 	top-left = x (14)
 		bottom-left = x (2)
@@ -702,7 +705,6 @@ middle-middle = b (55)
 				top-middle = x : middle-right
 				top-middle = o : middle-right (1)
 				top-middle = b : top-middle (1)
-				
 			bottom-right = o : center (2)
 			bottom-right = b : center (1)
 		middle-left = o : center (11)
