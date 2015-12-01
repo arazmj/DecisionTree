@@ -4,10 +4,20 @@ import net.amirrazmjou.tictactoe.*;
 
 import java.io.*;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Main {
+
+    /**
+     * Max number of moves on generated TTT data set
+     */
+    public static final int maxMoves = 7;
+
+    /**
+     * Seed number for various random function applications
+     */
+    public static final int SEED = 1;
+
     // Q.2
     // The Restaurant data set in Fig. 18.3 (3/2Ed) is the training
     // set. No test set for this data set. Your implementation should
@@ -33,6 +43,7 @@ public class Main {
                                         String testFileName) {
         System.out.println();
         System.out.println("Training Set: " + trainFileName);
+
         // given the file names for attributes, training set, and test set
         // read in the attributes, training set, and test set
         List<List<String>> attrData = null,
@@ -50,7 +61,7 @@ public class Main {
         Attribute.ResetIndex();
 
         assert attrData != null;
-        int classIndex = attrData.size() - 1;
+        int classIndex = attrData.size() - SEED;
         Attribute classes = new Attribute(attrData.get(classIndex));
         attrData.remove(classIndex);
 
@@ -117,10 +128,16 @@ public class Main {
         testDecisionTree("ttt-attr.txt", "ttt-train.txt", "ttt-test.txt");
     }
 
+    /**
+     * test the Tic Tac Tow generated data set
+     */
     public static void testTttPlay() {
         testDecisionTree("ttt-play-attr.txt", "ttt-play-train.txt", "ttt-play-test.txt");
     }
 
+    /**
+     * test the Tic Tac Tow generated data set and the extra attributes
+     */
     public static void testTttPlayExtra() {
         testDecisionTree("ttt-play-extra-attr.txt", "ttt-play-extra-train.txt", "ttt-play-extra-test.txt");
     }
@@ -149,13 +166,17 @@ public class Main {
                                       int testSize, String testFileName, String test2FileName)
     {
 
+        String[] positions =  new String[]
+                        {"top-left", "top-middle", "top-right",
+                        "middle-left", "center", "middle-right",
+                        "bottom-left", "bottom-middle", "bottom-right"};
 
         System.out.print("Generating examples...");
 
         // put all training set and test set in a single hash set
         // so we can make sure we have distinct examples
         HashMap<String, String> examplesData = new HashMap<>();
-        HashMap<String, String> opponentMoves = new HashMap<>();
+        HashMap<String, String> extraAttribute = new HashMap<>();
 
         int examplesCount = trainSize + testSize;
         int c = 0;
@@ -164,18 +185,8 @@ public class Main {
             Board2D board = new Board2D(3);
             StringBuilder sb = new StringBuilder();
 
-            // we want odd numbers of 1, 3, 5, 7
-            // these are the number of moves that
-            // makes the turn to x on the next move
-            // assuming that it starts with o
-            int n = 2 * (c % 4);
-
             String beforeMove, afterMove;
-            putRandomMoves(board, n, c);
-            beforeMove = board.toSingleLineString();
-            putRandomMoves(board, 1, c);
-            afterMove = board.toSingleLineString();
-            String opponentMove = findMove(beforeMove, afterMove);
+            putRandomMoves(board, maxMoves, c);
 
             beforeMove = board.toSingleLineString();
 
@@ -183,19 +194,30 @@ public class Main {
 
             Player player = new SimpleMaxMinPlayer(board, Seed.CROSS);
             player.move();
+
             afterMove = board.toSingleLineString();
 
-            String move = findMove(beforeMove, afterMove);
+            String[] splitBeforeMove = beforeMove.split(" ");
+            String[] splitAfterMove = afterMove.split(" ");
 
-            examplesData.put(sb.toString(), move);
-            opponentMoves.put(sb.toString(), opponentMove);
+            int i = 0;
+            for (; i < splitAfterMove.length; i++) {
+                if (!splitAfterMove[i].equals(splitBeforeMove[i]))
+                    break;
+            }
+            String classValue = positions[i];
+
+            examplesData.put(sb.toString(), classValue);
+            extraAttribute.put(sb.toString(), board.winner() == null ? "Block" : "Win");
 
             if (c % 20 == 0)
                 System.out.print(".");
         }
         List<Map.Entry<String, String>> examplesEntries = new ArrayList<>(examplesData.entrySet());
 
-        Collections.shuffle(examplesEntries, new Random(1));
+        // the base data set is shuffled and then the extra attribute is added
+        // so the only difference between two data sets will be the extra attribute
+        Collections.shuffle(examplesEntries, new Random(SEED));
 
         List<String> lineExamples = examplesEntries
                 .stream()
@@ -205,23 +227,10 @@ public class Main {
         List<String> trainLines = lineExamples.subList(0, trainSize);
         List<String> testLines = lineExamples.subList(trainSize, trainSize + testSize);
 
-        Function<String, String> countCross = s -> opponentMoves.get(s); //s.chars().filter(p -> p == 'o' || p == 'x').count();
-
         List<String> lineExamplesExtra = examplesEntries
                 .stream()
-                .map(p-> p.getKey() + countCross.apply(p.getKey()) + " " + p.getValue())
+                .map(p-> p.getKey() + extraAttribute.get(p.getKey()) + " " + p.getValue())
                 .collect(Collectors.toList());
-
-        List<String> extraValues = examplesEntries
-                .stream()
-                .map(p -> countCross.apply(p.getKey()).toString())
-                .distinct()
-                .collect(Collectors.toList());
-
-        String join = String.join(" ", extraValues);
-        System.out.println();
-        System.out.println(join);
-
 
         List<String> trainDataExtra = lineExamplesExtra.subList(0, trainSize);
         List<String> testDataExtra = lineExamplesExtra.subList(trainSize, trainSize + testSize);
@@ -264,23 +273,6 @@ public class Main {
         }
     }
 
-    private static String findMove(String beforeMove, String afterMove) {
-        String[] positions = new String[]
-                {"top-left", "top-middle", "top-right",
-                        "middle-left", "center", "middle-right",
-                        "bottom-left", "bottom-middle", "bottom-right"};
-
-        String[] splitBeforeMove = beforeMove.split(" ");
-        String[] splitAfterMove = afterMove.split(" ");
-
-        int i = 0;
-        for (; i < splitAfterMove.length; i++) {
-            if (!splitAfterMove[i].equals(splitBeforeMove[i]))
-                break;
-        }
-        return positions[i % positions.length];
-    }
-
     private static void putRandomMoves(Board board, int n, int seed)
     {
         Random random = new Random();
@@ -305,11 +297,13 @@ public class Main {
     }
 
     public static void main(String[] args)  {
+
+        testRestaurant();
+        testIds();
+        testTtt();
+
         genTttMoveData(200, "ttt-play-train.txt", "ttt-play-extra-train.txt",
-                       50, "ttt-play-test.txt", "ttt-play-extra-test.txt");
-//        testRestaurant();
-//        testIds();
-//        testTtt();
+                50, "ttt-play-test.txt", "ttt-play-extra-test.txt");
         testTttPlay();
         testTttPlayExtra();
     }
