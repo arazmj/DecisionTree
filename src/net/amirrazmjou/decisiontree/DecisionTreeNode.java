@@ -72,7 +72,7 @@ public class DecisionTreeNode {
             subTree.append(branch.branchLabel);
             subTree.append(branch.leaf ? " : " + branch.label : "");
             subTree.append(branch.extraInfo.isEmpty() ? "" : " (" + branch.extraInfo + ")");
-            subTree.append("\n");
+            subTree.append("\r\n");
             subTree.append(branch.toString(indent + 1));
         }
         return subTree.toString();
